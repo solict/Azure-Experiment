@@ -1,0 +1,119 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "northeurope",
+            "metadata": {
+                "description": "General: Location for the deployments"
+            }
+        },
+        "namespacePrefix": {
+            "type": "string",
+            "defaultValue": "test",
+            "minLength": 1,
+            "maxLength": 70,
+            "metadata": {
+                "description": "General: Prefix for this namespace"
+            }
+        },
+        "namespaceTags": {
+            "type": "object",
+            "defaultValue": {
+                "Environment": "Development",
+                "Infrastructure": "MariaDB",
+                "Service": "MariaDB"
+            },
+            "metadata": {
+                "description": "General: Tags for this namespace"
+            }
+        },
+        "adminUsername": {
+            "type": "string",
+            "defaultValue": "test"
+        },
+
+        "includeAvailabilitySet": {
+            "type": "string",
+            "defaultValue": "yes",
+            "allowedValues": [ "yes", "no" ],
+            "metadata": {
+                "description": "Templates: Enable Availability Set?"
+            }
+        },
+
+        "availabilitySetName": {
+            "type": "string",
+            "defaultValue": "ha",
+            "minLength": 1,
+            "maxLength": 80,
+            "metadata": {
+                "description": "Availability Set: Name of the Availability Set"
+            }
+        },
+        "availabilitySetFaultDomains": {
+            "type": "int",
+            "defaultValue": 2,
+            "minValue": 1,
+            "maxValue": 3,
+            "metadata": {
+                "description": "Availability Set: Number of fault domains"
+            }
+        },
+        "availabilitySetUpdateDomains": {
+            "type": "int",
+            "defaultValue": 5,
+            "minValue": 1,
+            "maxValue": 20,
+            "metadata": {
+                "description": "Availability Set: Number of update domains"
+            }
+        },
+        "availabilitySetSku": {
+            "type": "string",
+            "defaultValue": "Aligned",
+            "allowedValues": [ "Aligned", "Classic" ],
+            "metadata": {
+                "description": "Availability Set: Use classic storage or managed disks"
+            }
+        }
+    },
+    "variables": {
+        "microsoftResources_apiVersion": "2017-03-01",
+        "resourceBaseUrl": "https://raw.githubusercontent.com/solict/Azure-Experiment/master/",
+        "templateAvailabilitySet": {
+            "yes": "[concat(variables('resourceBaseUrl'), 'template-ha.json')]",
+            "no": "[concat(variables('resourceBaseUrl'), 'template-empty.json')]"
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "[variables('microsoftResources_apiVersion')]",
+            "type": "Microsoft.Resources/deployments",
+            "name": "nestedAvailabilitySet",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('templateAvailabilitySet')[parameters('includeAvailabilitySet')]]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location": {"value": "[parameters('location')]"},
+                    "namespacePrefix": {"value": "[parameters('namespacePrefix')]"},
+                    "namespaceTags": {"value": "[parameters('namespaceTags')]"},
+                    "availabilitySetName": {"value": "[parameters('availabilitySetName')]"},
+                    "availabilitySetFaultDomains": {"value": "[parameters('availabilitySetFaultDomains')]"},
+                    "availabilitySetUpdateDomains": {"value": "[parameters('availabilitySetUpdateDomains')]"},
+                    "availabilitySetSku": {"value": "[parameters('availabilitySetSku')]"}
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "includeAvailabilitySet": {
+            "type": "string",
+            "value": "[parameters('includeAvailabilitySet')]"
+        }
+    }
+}

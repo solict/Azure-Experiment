@@ -1,0 +1,89 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "northeurope",
+            "metadata": {
+                "description": "General: Location for the deployments"
+            }
+        },
+        "namespacePrefix": {
+            "type": "string",
+            "defaultValue": "test",
+            "metadata": {
+                "description": "General: Prefix for this namespace"
+            }
+        },
+        "namespaceTags": {
+            "type": "object",
+            "defaultValue": {
+                "Environment": "Development",
+                "Infrastructure": "MariaDB",
+                "Service": "MariaDB"
+            },
+            "metadata": {
+                "description": "General: Tags for this namespace"
+            }
+        },
+
+        "availabilitySetName": {
+            "type": "string",
+            "defaultValue": "ha",
+            "minLength": 1,
+            "maxLength": 80,
+            "metadata": {
+                "description": "Availability Set: Name of the Availability Set"
+            }
+        },
+        "availabilitySetFaultDomains": {
+            "type": "int",
+            "defaultValue": 2,
+            "minValue": 1,
+            "maxValue": 3,
+            "metadata": {
+                "description": "Availability Set: Number of fault domains"
+            }
+        },
+        "availabilitySetUpdateDomains": {
+            "type": "int",
+            "defaultValue": 5,
+            "minValue": 1,
+            "maxValue": 20,
+            "metadata": {
+                "description": "Availability Set: Number of update domains"
+            }
+        },
+        "availabilitySetSku": {
+            "type": "string",
+            "defaultValue": "Aligned",
+            "allowedValues": [ "Aligned", "Classic" ],
+            "metadata": {
+                "description": "Availability Set: Use classic storage or managed disks"
+            }
+        }
+    },
+    "variables": {
+        "microsoftCompute_apiVersion": "2017-03-30"
+    },
+    "resources": [
+        {
+            "apiVersion": "[variables('microsoftCompute_apiVersion')]",
+            "type": "Microsoft.Compute/availabilitySets",
+            "name": "[concat(parameters('namespacePrefix'), '-', parameters('availabilitySetName'))]",
+            "location": "[parameters('location')]",
+            "tags": {},
+            "properties": {
+                "platformUpdateDomainCount": "[parameters('availabilitySetUpdateDomains')]",
+                "platformFaultDomainCount": "[parameters('availabilitySetFaultDomains')]",
+                "virtualMachines": []
+            },
+            "sku": {
+                "name": "[parameters('availabilitySetSku')]"
+            }
+        }
+    ],
+    "outputs": {
+    }
+}
